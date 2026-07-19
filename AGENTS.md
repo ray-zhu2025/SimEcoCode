@@ -159,3 +159,12 @@ const table = sqliteTable("session", {
 - Keep delivery vocabulary explicit. Prompts steer by default and promote at the next safe provider-turn boundary while the current drain requires continuation. An explicit `queue` input remains pending until the Session would otherwise become idle; promote one queued input at that boundary, then reevaluate continuation before promoting another. Promoting any new user input resets the selected agent's provider-turn allowance; a batch of steers resets it once.
 - Keep EventV2 replay owner claims separate from clustered Session execution ownership.
 - Keep the System Context algebra, registry, and built-ins in `src/system-context`; keep Context Source producers with their observed domains, and keep Session History selection plus Context Epoch persistence Session-owned.
+
+## Cursor Cloud specific instructions
+
+- Runtime: this is a Bun-only monorepo (Bun pinned to `1.3.14` via `packageManager`). Bun is preinstalled at `~/.bun/bin` and on `PATH` via `~/.bashrc`; the startup update script runs `bun install`. Do not use npm/pnpm/yarn.
+- Standard commands are already documented — do not duplicate them. Dev/run: `CONTRIBUTING.md` (`bun dev`, `bun dev serve`, `bun dev web`, `bun run --cwd packages/app dev`). Lint/typecheck/test scripts: root `package.json` and per-package `package.json`.
+- Tests cannot run from the repo root (guard in `bunfig.toml`); run from a package dir, e.g. `cd packages/opencode && bun test` or `cd packages/core && bun test`. Typecheck via `bun run typecheck` (turbo) at root, or `bun typecheck` inside a package.
+- The headless server (`bun dev serve`) listens on `http://127.0.0.1:4096` and also serves the web UI at `/app` and the OpenAPI spec at `/doc`. The TUI (`bun dev`) embeds this server automatically. The TUI is interactive — run it under tmux (see `packages/opencode/AGENTS.md`), never as a blocking foreground command.
+- No LLM provider API key is present in the cloud VM by default, so full agent turns (model streaming) will not complete. Non-model core flows (session create/list, config, project detection, local SQLite storage, the web UI) work without a key. To exercise a real agent turn, add a provider key (e.g. `ANTHROPIC_API_KEY`) as a secret.
+- `bunfig.toml` sets `minimumReleaseAge` (3 days) on newly resolved dependencies; brand-new package versions may fail to install until they age out (an explicit exclude list exists for fast-moving first-party deps).
